@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Classification</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Brain Tumor Classification</h1>
+            <p>Upload Image.</p>
+        </header>
+
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept="image/*" class="file-input">
+            <button onclick="uploadAndPredict()" class="upload-btn">Upload & Predict</button>
+        </div>
+
+        <!-- Display Uploaded Image -->
+        <div class="image-container">
+            <img id="uploadedImage" src="#" alt="Uploaded Image" style="display:none;">
+        </div>
+
+        <!-- Prediction Result -->
+        <div id="result" class="result-container"></div>
+    </div>
+
+    <script>
+        function uploadAndPredict() {
+            const fileInput = document.getElementById("fileInput");
+            const uploadedImage = document.getElementById("uploadedImage");
+            const resultDiv = document.getElementById("result");
+
+            if (fileInput.files.length === 0) {
+                alert("Please select an image.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                } else {
+                    uploadedImage.src = data.image_path;
+                    uploadedImage.style.display = "block";
+                    resultDiv.innerHTML = `
+                        <h3>Prediction: ${data.prediction}</h3>
+                        <h4>Confidence: ${data.confidence}%</h4>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                resultDiv.innerHTML = `<p style="color:red;">An error occurred. Please try again.</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
